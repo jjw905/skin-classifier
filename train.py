@@ -1,5 +1,4 @@
 """
-피부 질환 분류 모델 학습 스크립트 (Kaggle 실행용)
 
 사용법:
     python train.py --model resnet
