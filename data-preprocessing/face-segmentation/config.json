@@ -1,0 +1,37 @@
+{
+  "models": {
+    "face_parse_model": "jonathandinu/face-parsing",
+    "sam2_model": "facebook/sam2-hiera-tiny"
+  },
+  "segmentation": {
+    "bg_color": [200, 200, 200],
+    "sam2_long_side": 1024,
+    "sam2_points_per_batch": 32,
+    "sam2_points_per_crop": 16,
+    "mask_label_names": [
+      "hair",
+      "l_brow",
+      "r_brow",
+      "left_eyebrow",
+      "right_eyebrow",
+      "l_eye",
+      "r_eye",
+      "left_eye",
+      "right_eye",
+      "eye_g",
+      "beard",
+      "mustache",
+      "moustache",
+      "facial_hair"
+    ]
+  },
+  "runtime": {
+    "src": "/kaggle/input/skin-face-aihub-training/datasets/face_aihub/train",
+    "dst": "/kaggle/working/datasets/face_aihub_segmented_v2/train",
+    "labels_src": "/kaggle/input/skin-face-aihub-training/datasets/face_aihub/labels",
+    "labels_dst": "/kaggle/working/datasets/face_aihub_segmented_v2/labels",
+    "device": 0,
+    "skip_existing": true,
+    "limit": null
+  }
+}
