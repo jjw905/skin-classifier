@@ -21,8 +21,6 @@ AI Hub 피부 데이터셋으로 학습한 6종 안면 피부 질환 분류 모�
 
 학습 기간: 2026-05-03 ~ 2026-05-04. 전체 지표는 [training-results-20260504/](training-results-20260504/)에서 확인할 수 있다.
 
-> 학습된 모델 가중치(`.pth`)는 용량 문제로 포함하지 않는다. 필요하면 저자에게 문의한다.
-
 ---
 
 ## 레포지토리 구조
@@ -60,9 +58,28 @@ training-results-20260504/
 
 ## 추론
 
-각 모델 파일은 독립적으로 동작한다. `inference-code/`를 Python 경로에 추가한 뒤 import해서 사용한다.
+각 모델 파일은 독립적으로 동작한다.
 
-### 앙상블 모델
+### 1단계. 의존성 설치
+
+```bash
+pip install torch torchvision pillow
+```
+
+### 2단계. 가중치 파일 배치
+
+4개 파일을 동일한 디렉터리(예: `weights/`)에 넣는다.
+
+| 키 | 파일명 | 크기 |
+|---|---|---|
+| `efficientnet` | `efficientnet_best.pth` | ~82 MB |
+| `resnet` | `resnet_best.pth` | ~94 MB |
+| `densenet` | `densenet_best.pth` | ~28 MB |
+| `swin` | `swin_best.pth` | ~110 MB |
+
+### 3단계. 앙상블 추론
+
+`inference-code/`를 Python 경로에 추가한 뒤 4개 모델의 출력 확률을 평균 내는 소프트 보팅 방식으로 최종 클래스를 결정한다.
 
 ```python
 import sys
@@ -74,45 +91,71 @@ import torch
 from PIL import Image
 import torchvision.transforms.functional as TF
 
-model = EnsembleModel(pretrained=False, weights_dir="/path/to/weights")
+model = EnsembleModel(pretrained=False, weights_dir="weights/")
 model.eval()
 
 img = TF.to_tensor(Image.open("face.jpg").convert("RGB")).unsqueeze(0)
+
 with torch.no_grad():
     log_probs = model(img)
+
 probs = torch.exp(log_probs)
 pred = CLASS_NAMES[probs.argmax().item()]
+print(pred)
+
+for cls, p in zip(CLASS_NAMES, probs[0].tolist()):
+    print(f"{cls}: {p:.3f}")
 ```
 
-입력 이미지는 256px 이상이면 되고, 내부에서 모델별로 자동 리사이즈된다. 출력은 log-softmax이므로 `torch.exp()`로 확률로 변환한다.
+입력 이미지는 256px 이상이면 된다. 내부에서 모델별로 자동 리사이즈되며, 출력은 log-softmax이므로 `torch.exp()`로 확률로 변환한다.
 
-### 단일 모델
+### 단일 모델 추론
+
+특정 모델 하나만 사용할 경우이다. 아래는 EfficientNetV2-S 예시이며, 나머지 모델도 동일한 방식으로 사용한다.
 
 ```python
 import sys
 sys.path.insert(0, "inference-code")
 
 from models.efficientnet_v2 import build_efficientnetv2
+from models.base_model import CLASS_NAMES
 import torch
+from PIL import Image
+import torchvision.transforms.functional as TF
 
 model = build_efficientnetv2(pretrained=False)
 model.load_state_dict(torch.load("efficientnet_best.pth", map_location="cpu", weights_only=True))
 model.eval()
+
+img = TF.to_tensor(Image.open("face.jpg").convert("RGB")).unsqueeze(0)
+
+with torch.no_grad():
+    log_probs = model(img)
+
+probs = torch.exp(log_probs)
+pred = CLASS_NAMES[probs.argmax().item()]
+print(pred)
 ```
 
-### 앙상블 가중치 파일명
+다른 모델의 build 함수는 아래와 같다.
 
-| 키 | 파일명 |
+| 모델 | import |
 |---|---|
-| `efficientnet` | `efficientnet_best.pth` |
-| `resnet` | `resnet_best.pth` |
-| `densenet` | `densenet_best.pth` |
-| `swin` | `swin_best.pth` |
+| ResNet-50 | `from models.resnet import build_resnet` |
+| DenseNet-121 | `from models.densenet import build_densenet` |
+| EfficientNetV2-S | `from models.efficientnet_v2 import build_efficientnetv2` |
+| Swin-T | `from models.swin_transformer import build_swin` |
 
-일부 모델만 조합할 경우 `components`에 원하는 키를 지정한다.
+### 일부 모델만 조합하는 앙상블
+
+`components`에 사용할 키를 튜플로 지정한다. 지정하지 않으면 4개 전체를 사용한다.
 
 ```python
-model = EnsembleModel(pretrained=False, components=("efficientnet", "swin"), weights_dir="/path/to/weights")
+model = EnsembleModel(
+    pretrained=False,
+    components=("efficientnet", "swin"),
+    weights_dir="weights/",
+)
 ```
 
 ---
@@ -121,31 +164,77 @@ model = EnsembleModel(pretrained=False, components=("efficientnet", "swin"), wei
 
 아래 순서대로 실행한다. 각 스크립트는 프로젝트 루트 기준으로 `datasets/`를 참조하며, 결과 리포트는 `reports/`에 저장된다.
 
-### 1단계. 얼굴 분할
+### 1단계. 얼굴 분할 (`face-segmentation/segment_faces.py`)
 
-SegFormer(face-parsing)로 머리카락·눈썹·눈 영역을 마스킹하고, SAM2로 얼굴 전경을 분리한다.
+SegFormer(face-parsing)로 머리카락·눈썹·눈 영역을 회색으로 마스킹하고, SAM2로 얼굴 전경을 분리해 배경을 회색으로 대체한다. 처음 실행 시 HuggingFace에서 모델이 자동 다운로드된다.
 
 ```bash
 cd data-preprocessing/face-segmentation
 pip install -r requirements.txt
-python segment_faces.py --src /path/to/images --dst /path/to/output --device 0
+
+python segment_faces.py \
+  --src /path/to/원본이미지 \
+  --dst /path/to/분할결과 \
+  --device 0
 ```
 
-모델명과 SAM2 파라미터는 `config.json`에서 변경한다. `--config /path/to/config.json`으로 설정 파일을 오버라이드할 수 있다.
+주요 옵션은 아래와 같다.
 
-### 2–4단계. 피부톤 균형 증강
+| 옵션 | 설명 | 기본값 |
+|---|---|---|
+| `--src` | 원본 이미지 루트 (클래스 디렉터리 포함) | config.json 참조 |
+| `--dst` | 분할 결과 저장 경로 | config.json 참조 |
+| `--device` | GPU 인덱스 (`-1`이면 CPU) | `0` |
+| `--skip-existing` | 이미 처리된 파일 건너뜀 | 기본 활성화 |
+| `--no-skip` | 이미 처리된 파일도 재처리 | - |
+| `--limit N` | 처음 N개만 처리 (테스트용) | 전체 처리 |
+
+모델명과 SAM2 파라미터는 `config.json`에서 변경한다. 커맨드라인 인자가 config보다 우선 적용된다.
+
+```bash
+python segment_faces.py --config /path/to/config.json
+```
+
+### 2단계. ITA 피부톤 3단계 분석 (`skin_tone_level_report.py`)
+
+CIELAB 색공간의 ITA(Individual Typology Angle) 값을 기준으로 각 이미지를 밝음·중간·어두움 3단계로 분류한다. 결과 JSON은 이후 단계에서 입력으로 사용된다.
 
 ```bash
 cd data-preprocessing/color-correction
 pip install -r requirements.txt
 
 python skin_tone_level_report.py
+```
+
+`PROJECT_ROOT/datasets/`의 이미지를 읽고 `PROJECT_ROOT/reports/`에 결과를 저장한다.
+
+### 3단계. ITA 6구간 세분화 (`skin_tone_ita6_report.py`)
+
+2단계 결과를 바탕으로 ITA 값을 6구간(dark / brown / tan / intermediate / light / very light)으로 세분화한다. 구간별 샘플 수와 분포를 확인하는 데 사용한다.
+
+```bash
 python skin_tone_ita6_report.py
-python build_tone_balanced_split.py --out-root /path/to/output
+```
+
+### 4단계. 피부톤 균형 분할 + 증강 (`build_tone_balanced_split.py`)
+
+3단계 구간별 분포를 기반으로 train/val 데이터셋을 구성한다. 샘플 수가 부족한 피부톤 구간은 이미지 증강(회전·플립·색상 변환 등)으로 보완하며, 증강 비율은 최대 3배로 제한한다.
+
+```bash
+python build_tone_balanced_split.py --out-root /path/to/출력
+```
+
+`--out-root`에 균형 잡힌 train/val 데이터셋이 생성된다.
+
+### 5단계. 정상 클래스 LAB 색보정 (`colorfit_tone_balanced_normal.py`)
+
+정상(normal) 클래스에서 밝은 피부톤 샘플이 과다 대표되는 경우, LAB 색공간에서 중앙값 기반 색 이동을 적용해 다른 질환 클래스의 피부톤 분포에 맞춘다.
+
+```bash
 python colorfit_tone_balanced_normal.py --src /path/to/dataset
 ```
 
-1단계에서 ITA 기반 3단계 피부톤 분석을 수행하고, 2단계에서 6구간으로 세분화한다. 3단계에서 피부톤 균형을 맞춘 train/val 분할과 증강을 적용하며, 4단계에서 정상 클래스의 밝은 피부톤 샘플에 LAB 색보정을 적용해 분포를 일반화한다.
+`--src`에는 4단계에서 생성한 tone-balanced 데이터셋 루트를 지정한다.
 
 ---
 
