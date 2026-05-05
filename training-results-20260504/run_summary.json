@@ -1,0 +1,96 @@
+{
+  "runner_version": "2026-05-04-v3",
+  "started_at": "2026-05-04 06:45:12",
+  "ended_at": "2026-05-04 08:46:46",
+  "status": "completed",
+  "completion_check": false,
+  "models": [
+    "resnet",
+    "densenet",
+    "efficientnet",
+    "swin",
+    "densenet_swin",
+    "efficientnet_swin",
+    "resnet_swin"
+  ],
+  "eff_epochs": 50,
+  "eff_patience": 10,
+  "class_order": [
+    "psoriasis",
+    "atopy",
+    "acne",
+    "normal",
+    "rosacea",
+    "seborrheic"
+  ],
+  "dataset_counts": {
+    "train": {
+      "psoriasis": 342,
+      "atopy": 450,
+      "acne": 450,
+      "normal": 306,
+      "rosacea": 450,
+      "seborrheic": 450
+    },
+    "val": {
+      "psoriasis": 15,
+      "atopy": 32,
+      "acne": 41,
+      "normal": 25,
+      "rosacea": 53,
+      "seborrheic": 50
+    },
+    "test": {
+      "psoriasis": 17,
+      "atopy": 29,
+      "acne": 49,
+      "normal": 25,
+      "rosacea": 53,
+      "seborrheic": 52
+    }
+  },
+  "results": {
+    "resnet": {
+      "exit_code": 0,
+      "log": "/kaggle/working/outputs_20260504_064512/logs/resnet_20260504_064512.log",
+      "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/resnet/resnet_best.pth",
+      "summary": "/kaggle/working/outputs_20260504_064512/checkpoints/resnet/summary.json"
+    },
+    "densenet": {
+      "exit_code": 0,
+      "log": "/kaggle/working/outputs_20260504_064512/logs/densenet_20260504_065739.log",
+      "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/densenet/densenet_best.pth",
+      "summary": "/kaggle/working/outputs_20260504_064512/checkpoints/densenet/summary.json"
+    },
+    "efficientnet": {
+      "exit_code": 0,
+      "log": "/kaggle/working/outputs_20260504_064512/logs/efficientnet_20260504_071202.log",
+      "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/efficientnet/efficientnet_best.pth",
+      "summary": "/kaggle/working/outputs_20260504_064512/checkpoints/efficientnet/summary.json"
+    },
+    "swin": {
+      "exit_code": 0,
+      "log": "/kaggle/working/outputs_20260504_064512/logs/swin_20260504_073600.log",
+      "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/swin/swin_best.pth",
+      "summary": "/kaggle/working/outputs_20260504_064512/checkpoints/swin/summary.json"
+    },
+    "densenet_swin": {
+      "exit_code": 0,
+      "log": "/kaggle/working/outputs_20260504_064512/logs/densenet_swin_20260504_075359.log",
+      "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/densenet_swin/densenet_swin_best.pth",
+      "summary": "/kaggle/working/outputs_20260504_064512/checkpoints/densenet_swin/summary.json"
+    },
+    "efficientnet_swin": {
+      "exit_code": 0,
+      "log": "/kaggle/working/outputs_20260504_064512/logs/efficientnet_swin_20260504_080757.log",
+      "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/efficientnet_swin/efficientnet_swin_best.pth",
+      "summary": "/kaggle/working/outputs_20260504_064512/checkpoints/efficientnet_swin/summary.json"
+    },
+    "resnet_swin": {
+      "exit_code": 0,
+      "log": "/kaggle/working/outputs_20260504_064512/logs/resnet_swin_20260504_083039.log",
+      "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/resnet_swin/resnet_swin_best.pth",
+      "summary": "/kaggle/working/outputs_20260504_064512/checkpoints/resnet_swin/summary.json"
+    }
+  }
+}

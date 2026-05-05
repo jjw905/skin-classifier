@@ -1,0 +1,49 @@
+{
+  "model": "densenet",
+  "best_epoch": 6,
+  "best_f1": 0.8662,
+  "last_epoch": 16,
+  "stopped_early": true,
+  "early_stop_patience": 10,
+  "early_stop_min_delta": 0.001,
+  "checkpoint": "/kaggle/working/outputs_20260504_064512/checkpoints/densenet/densenet_best.pth",
+  "test": {
+    "accuracy": 0.9022,
+    "precision": 0.9049,
+    "recall": 0.8925,
+    "f1_score": 0.8976,
+    "confidence": 0.7983,
+    "per_class": {
+      "psoriasis": {
+        "precision": 0.8125,
+        "recall": 0.7647,
+        "f1": 0.7879
+      },
+      "atopy": {
+        "precision": 0.9259,
+        "recall": 0.8621,
+        "f1": 0.8929
+      },
+      "acne": {
+        "precision": 0.9184,
+        "recall": 0.9184,
+        "f1": 0.9184
+      },
+      "normal": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "rosacea": {
+        "precision": 0.9592,
+        "recall": 0.8868,
+        "f1": 0.9216
+      },
+      "seborrheic": {
+        "precision": 0.8136,
+        "recall": 0.9231,
+        "f1": 0.8649
+      }
+    }
+  }
+}

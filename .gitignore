@@ -1,0 +1,30 @@
+# Model weights (too large for git)
+*.pth
+
+# Datasets and reports (local only)
+datasets/
+reports/
+aihub_segmented/
+
+# Misc local artifacts
+*.zip
+HANDOVER.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.eggs/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Claude
+.claude/
+
+# VSCode
+.vscode/
